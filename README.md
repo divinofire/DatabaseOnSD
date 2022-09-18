@@ -1,11 +1,11 @@
-# Table Manager
+# DatabaseOnSD
 
 ## Description
-- A library to easily create and manage a database on an SD card. 
-- Made by Divino Fire, https://github.com/divinofire/
+- A library to easily create and manage a database on an SD card. it makes reading and writing to an SD card a breeze.
 - Easily read and write csv style files on an SD card
+- Made by Divino Fire, https://github.com/divinofire/
 
-## practical usage
+## Practical Usage
 - tiny spreadsheet for IOT systems
 - credential storage
 - alternative long String storage
@@ -14,7 +14,7 @@
 NB: For logging purposes only with no intention to read back the logged data using the microconroller, consider using the bare SD library.
 
 
-## installation
+## Installation
 Download this project folder into arduino libaries folder or search 'DatabaseOnSD' in arduino library manager.
 
 ## usage
