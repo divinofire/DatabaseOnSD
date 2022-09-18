@@ -11,7 +11,7 @@
 - alternative long String storage
 - weather logging
 - temperature logging
-NB: For logging purposes only with no intention to read back using the microconroller, consider using the standard library
+NB: For logging purposes only with no intention to read back the logged data using the microconroller, consider using the bare SD library.
 
 
 ## installation
