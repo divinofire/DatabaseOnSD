@@ -1,0 +1,26 @@
+#library
+DatabaseOnSD
+
+#object
+MyTable	KEYWORD1
+
+#methods and functions
+begin	KEYWORD2
+getName	KEYWORD2
+setName	KEYWORD2
+printTable	KEYWORD2
+selectRow	KEYWORD2
+writeCell	KEYWORD2
+writeCellFast	KEYWORD2
+readCell	KEYWORD2
+countRows	KEYWORD2
+countCols	KEYWORD2
+appendRow	KEYWORD2
+appendEmptyRow	KEYWORD2
+overwriteTable	KEYWORD2
+emptyTable	KEYWORD2
+deleteRow	KEYWORD2
+insertRow	KEYWORD2
+overwriteRow	KEYWORD2
+DEBUG_Table	KEYWORD2
+parseNumber	KEYWORD2
