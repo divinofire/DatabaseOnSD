@@ -17,7 +17,7 @@ NB: For logging purposes only with no intention to read back the logged data usi
 ## Installation
 Download this project folder into arduino libaries folder or search 'DatabaseOnSD' in arduino library manager.
 
-## usage
+## Usage
 ```c++
 
 #include <DatabaseOnSD.h>
