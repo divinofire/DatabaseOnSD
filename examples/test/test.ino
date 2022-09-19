@@ -1,6 +1,5 @@
 //by Divino Fire <github.com/divinofire>
 //date: 18/09/2022
-
 // write and read to a table on SD card 
 
 #include <DatabaseOnSD.h>
@@ -10,14 +9,14 @@
 
 //note: the csv files created by this library will be compartible with ms excel program
 // but csv files generated from ms excel are not compartible with this library
-// from version 1.0.2, all will be compartible.
+// from version 1.1.0, all will be compartible.
 
 
 
 
 MyTable testTable("test.csv");  //this will create or open a table named test.csv in the root of the SD card
 
-// MyTable testTable("testfolder/test.csv"); //if table is in folder.
+// MyTable testTable("testfolder/test.csv"); //if table is in a folder.
 
 //it could be any extension instead of .csv
 

@@ -120,13 +120,26 @@ void loop(){
 ```c++
 void begin(); //used to initialize existing tables (not necessary if you started called SD.begin() in loop)
 void begin(int numRows, int numCols); //used to initialize a new table
-bool writeCell(int rowN, int colN, String xdata); //read to a cell 
+bool writeCell(int rowN, int colN, String xdata); //write to a cell 
 String readCell(int rowN, int colN); //read a cell 
 int countRows(); //return the number of rows in the table
 int countCols(); //return the number of columns in the table
 void appendEmptyRow(); //append an empty row to the table
+bool deleteRow(unsigned int rowN); //delete the specified row
 ```
 
+## Reference2 - other useful methods
+```c++
+//the functions below are dangerous if not used well,
+void emptyTable(); // * complete empty a table
+void appendEmptyRow(int colN); //append an empty row to the table with colN number of columns, use this after calling emptyTable()
+bool insertRow(unsigned int rowN, String row); //insert the row into the row index
+bool overwriteRow(int rowN, String row ); //* overwrite the specified row, 
+bool writeCellFast(int rowN, int colN, String xdata); //same as writeCell but just very fast. Use this only if you are running your code on an arduino board like uno, nano or mega.
+String selectRow(int rowN); //return an entire row as a string
+
+//For further methods and functions, see header file.
+```
 
 
 ## DEBUG mode
