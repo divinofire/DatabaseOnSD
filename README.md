@@ -11,7 +11,7 @@
 - alternative long String storage
 - weather logging and retrieving
 - temperature logging and retrieving
-NB: For logging purposes only with no intention to read back the logged data using the microconroller, consider using the bare SD library.
+NB: For logging purposes only with no intention to read back the logged data using the microcontroller, consider using the bare SD library.
 
 
 ## Installation
@@ -20,7 +20,7 @@ Download this project folder into arduino libaries folder or search 'DatabaseOnS
 ## Usage
 ```c++
 
-#include <DatabaseOnSD.h>
+#include <DatabaseOnSD.h> // include the library
 
 
 //the table name should be short (less than 8 characters)
