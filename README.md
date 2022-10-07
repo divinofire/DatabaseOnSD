@@ -53,7 +53,7 @@ users.begin(3, 2); // if table is empty, initialize table with 3 rows and two co
 
 
 The table above (implemented below) has 3 rows and 2 columns
-'NAME' is in cell (0, 0) and '21' is in cell (2, 1)
+cell indices start from zero:  'NAME' is in cell (0, 0) and '21' is in cell (2, 1)
 
 
 */
@@ -144,6 +144,7 @@ void emptyTable(); // * complete empty a table
 void appendEmptyRow(int colN); //append an empty row to the table with colN number of columns, use this after calling emptyTable()
 bool insertRow(unsigned int rowN, String row); //insert the row into the row index
 bool overwriteRow(int rowN, String row ); //* overwrite the specified row, 
+bool deleteRow(int rowN); //deletes the specified row from the table
 bool writeCellFast(int rowN, int colN, String xdata); //same as writeCell but just very fast. Use this only if you are running your code on an arduino board like uno, nano or mega.
 String selectRow(int rowN); //return an entire row as a string
 
