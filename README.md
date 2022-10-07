@@ -6,11 +6,11 @@
 - Made by Divino Fire, https://github.com/divinofire/
 
 ## Practical Usage
-- tiny spreadsheet for IOT systems
+- offline spreadsheet for IOT systems
 - credential storage
 - alternative long String storage
-- weather logging
-- temperature logging
+- weather logging and retrieving
+- temperature logging and retrieving
 NB: For logging purposes only with no intention to read back the logged data using the microconroller, consider using the bare SD library.
 
 
@@ -47,10 +47,10 @@ users.begin(3, 2); // if table is empty, initialize table with 3 rows and two co
 /*---sample table---  
 
       0         1
-
 0     NAME      AGE
 1     Divino    22
 2     Fire      21
+
 
 The table above (implemented below) has 3 rows and 2 columns
 'NAME' is in cell (0, 0) and '21' is in cell (2, 1)
@@ -109,6 +109,15 @@ void loop(){
 }
 
 ```
+
+### Output
+The above code will create a table on the SD card in a file named table.csv and read its content cell by cell. The table created is as shown below:
+
+| NAME     | AGE    |
+---------------------
+| Divino   | 22     |
+| Fire     | 21     |
+
 
 ## Quirks:
  1. All cells have the same width (default is 20 characters)- you can increase or decrease this size in the header file.
