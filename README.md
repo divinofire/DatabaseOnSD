@@ -114,7 +114,7 @@ void loop(){
 The above code will create a table on the SD card in a file named table.csv and read its content cell by cell. The table created is as shown below:
 
 | NAME     | AGE    |
----------------------
+|----------|--------|
 | Divino   | 22     |
 | Fire     | 21     |
 
