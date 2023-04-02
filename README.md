@@ -22,7 +22,7 @@ Lookup the right SPI pin connections for your microcontroller
 
 SPI pin mapping for some microcontrollers
 
-|SD CARD MODULE [(see pinout)](/extras/SD_card_module_pinout.jpg)|ARDUINO UNO  [(see pinout)](/extras/arduino_uno_pinout.jpg)|ARDUINO NANO [(see pinout)](/extras/arduino_nano_pinout.jpg)|ESP32 devKIT  [(see pinout)](/extras/ESP32_DEVKIT_pinout)|ESP32 OLED [(see pinout)](/extras/esp32_OLED_pinout)|
+|SD CARD MODULE [(see pinout)](/extras/SD_card_module_pinout.jpg)|ARDUINO UNO  [(see pinout)](/extras/arduino_uno_pinout.jpg)|ARDUINO NANO [(see pinout)](/extras/arduino_nano_pinout.jpg)|ESP32 devKIT  [(see pinout)](/extras/ESP32_DEVKIT_pinout.jpg)|ESP32 OLED [(see pinout)](/extras/esp32_OLED_pinout.jpg)|
 |----------------------------------------------------------------|-----------------------------------------------------------|------------------------------------------------------------|---------------------------------------------------------|----------------------------------------------------|
 |MOSI                                                            | 11                                                        | D11                                                        | GPIO 23                                                 | S1                                                 |
 |MISO                                                            | 12                                                        | D12                                                        | GPIO 19                                                 | S0                                                 |
