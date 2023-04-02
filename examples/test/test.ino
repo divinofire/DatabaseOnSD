@@ -3,9 +3,10 @@
 // write and read to a table on SD card 
 
 #include <DatabaseOnSD.h>
+//make sure you have connected the SD card appropriately 
+//(lookup the SPI pin connection for your microcontroller)
 
-
-//the table name should be short (less than 8 characters)
+//the table name should be short (advisably less than 11 characters including extension) - This is not a must
 
 //note: the csv files created by this library will be compartible with ms excel program
 // but csv files generated from ms excel are not compartible with this library
@@ -23,14 +24,15 @@ MyTable testTable("test.csv");  //this will create or open a table named test.cs
 
 void setup(){
 
-Serial.begin(115200); //start serial monitor with a baud rate of 115200
+// Serial.begin(115200); //start serial monitor with a baud rate of 115200 (good for ESP32)
+Serial.begin(9600); // start serial monitor with a baud rate of 9600 (good for Arduino)
+
+testTable.printSDstatus(); //[optional] print the initialization status of SD card
+testTable.emptyTable(); //[optional] empty table content (make sure to call begin(rowN, colN) after emptying a table) // you could always add more rows.
+testTable.begin(3, 2); //[optional] initialize an empty table with 3 rows and 2 columns (has no effect if table is not empty)
+//NOTE: there is no need to call begin() if table in NOT empty
 
 
-testTable.begin(3, 2); //if table is empty, append a table with 3 empty rows with 2 colummns each to the table
-
-//testTable.begin(); //for completely empty tables or filled tables
-
-// testTable.emptyTable(); //empty table content
 
 /*	
 		0   		1
@@ -46,9 +48,11 @@ NAME is in cell (0, 0) and 21 is in cell (2, 1)
 
 
 //write table content
+Serial.println("writing to table...");
 testTable.writeCell(0, 0, "NAME");   testTable.writeCell(0, 1, "AGE");
 testTable.writeCell(1, 0, "Divino"); testTable.writeCell(1, 1, "23");
 testTable.writeCell(2, 0, "Fire");   testTable.writeCell(2, 1, "22");
+Serial.println("finished writing!");
 
 
 //the max size of each cell is 20 characters for the sake of memory,
@@ -77,7 +81,7 @@ void loop(){
 		}
 	}
 
-	Serial.println("\n\n\n\n\n"); // space separate the next serial print by 5 empty lines
+	Serial.println(); // space separate the next serial print by an empty line
 
 	delay(3000);
 

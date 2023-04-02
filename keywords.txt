@@ -1,5 +1,5 @@
 #library
-DatabaseOnSD
+DatabaseOnSD	KEYWORD1
 
 #object
 MyTable	KEYWORD1

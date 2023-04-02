@@ -12,7 +12,7 @@ modification, are permitted provided that the following conditions are met:
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
 
-* Neither the name Divino Fire or the names of contributors 
+* Neither the name Divino Fire or the names of contributors if any
   to the repository <github.com/divinofire> may be used to endorse or promote
   products derived from this software without specific prior written permission.
 
@@ -30,38 +30,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "DatabaseOnSD.h"
 
-bool MyTable::SD_begun = false; // track if SD was began
+bool MyTable::SD_begun = false; // track if SD was began, useful if multiple objects are instantiated.
 //------------------------begin ---------------------verified--------------
-void MyTable::begin(){
 
+void MyTable::printSDstatus(){
+   if (SD_begun) Serial.println("SD card initialized!");
+  else Serial.println("SD card failed, or not present - (check pin connections)");
+}
+
+//begin() is not meant to be called externally
+void MyTable::begin(){
   if (!SD_begun) {
-    SD.begin();
-    SD_begun = true;
-  }
-   
-  if (SD.exists(getName()) == false){
-      File table;
-      table = SD.open(getName(), FILE_WRITE);
-      table.close();
+    // see if the card is present and can be initialized:
+    if (!SD.begin(CHIP_SELECT_PIN)) {
+      
+      SD_begun = false;
+    }
+    else{
+      
+      SD_begun = true;
+    }
   }
 }
 
+//initialise your table with a given number of rows and columns
 void MyTable::begin(int numRows, int numCols){
 
-  //begin SD if it has not begun already
-  if (!SD_begun) {
-    SD.begin();
-    SD_begun = true;
-  }
-   
-  //create table with table if it does not exist
-  if (SD.exists(getName()) == false){
-      File table;
-      table = SD.open(getName(), FILE_WRITE);
-      table.close();
-  }
-
   //append set rows with set columns
+  default_numCols = numCols;
   if (countRows() == 0){
     for (int i = 0; i < numRows; ++i){
       appendEmptyRow(numCols);
@@ -147,34 +143,40 @@ int MyTable::nthCharIndexTable(char charx, uint16_t positionx){
 
 
  //--------------------------readCell------------------verfied--------------------------------
-String MyTable::readCell(int rowN, int colN){
-     File table;
-     table = SD.open(tableName);  
+String MyTable::readCell(int rowN, int colN){ 
      String row = selectRow(rowN);
      int numCols = countCols();
+     int numRows = countRows();
+     if ((rowN >= numRows)|| (colN >= numCols)) return "";
       
      String data = "";
      int start = 0, stop=0;
      int j=0;
+
+
      
     start = nthCharIndex(DIL, colN, row);
     stop = nthCharIndex(DIL, colN+1, row);
 
-    //read from start to stop
-    //-fix extreme conditions--
     
-    if (colN==0) {start = -1;} //if the user wishes to select for example cell [0,0], set start before 0 index
-    //if the user selects a column that marks the end of a line, get stop to be the position of '\n' instead of ','
-    else if (colN==(numCols-1)) {stop = nthCharIndex(ENDL, 1, row);}
+    //---fix extreme conditions--
+    
+    // go the index before zero if first cell
+    if (colN==0) {start = -1;} 
+
+    uint8_t FIRST_ENDL_OCCURRENCE = 1;
+    if (colN==(numCols-1)) {stop = nthCharIndex(ENDL, FIRST_ENDL_OCCURRENCE, row);} 
+
     //Serial.print("start: ");  Serial.print(start); Serial.print("  stop: ");  Serial.println(stop);
+    
+    //read from start to stop [start and stop exclusive]
     j=0;
     for(auto i : row){
       if ((j>start) and (j<stop)) {data += String(i);}
       j++;
     }
-    table.close();
-    data.trim();
-    // Serial.print(F("freeMemory in readCell: ")); Serial.println(freeMemory()); 
+  
+    data.trim(); // remove end spaces or newlines
     return data;
  }
 
@@ -183,20 +185,30 @@ String MyTable::readCell(int rowN, int colN){
 //------------------------------------writeCell---------------verified----------------------------------
 
 bool MyTable::writeCell(int rowN, int colN, String xdata){
+  #ifndef ESP32
+  return writeCellFast_(rowN, colN, xdata);
+  #else
   return writeCell_(rowN, colN, xdata);
+  #endif
+  
 }
 
 bool MyTable::writeCell(int rowN, int colN, long xdata){
+  #ifndef ESP32
+  return writeCellFast_(rowN, colN, String(xdata));
+  #else
   return writeCell_(rowN, colN, String(xdata));
+  #endif
 }
 
 bool MyTable::writeCell_(int rowN, int colN, String xdata){
   int numCols = countCols();
-  int Nrows = countRows();
+  int numRows = countRows();
+  if ((rowN >= numRows)|| (colN >= numCols)) return false;
   String row = selectRow(rowN);
  
  int start = 0;
- int j=0;
+ // int j=0;
  bool end = false;
 
 //select start of column index
@@ -204,8 +216,8 @@ bool MyTable::writeCell_(int rowN, int colN, String xdata){
 
 //----------fix extreme conditions------
 //if the user wishes to select for example cell [0,0], set start before 0 index
-  if (colN==0) {start= -1; }
-  else if (colN == (numCols-1)) {end = true;}
+  if (colN==0) {start= -1; } //check if the target cell is in the first column
+  if (colN == (numCols-1)) {end = true;} //check if the target cell is in the last column
 
   //writing in row from start
   if (!end) row = updateString(++start, fd(xdata, CELL_LENGTH), row);
@@ -220,7 +232,7 @@ bool MyTable::writeCell_(int rowN, int colN, String xdata){
     tempfile.emptyTable();
   
 // copy all table data to tempfile
-    for (int i=0; i<Nrows; i++){
+    for (int i=0; i<numRows; i++){
       tempfile.appendRow(selectRow(i)); 
     }
 
@@ -228,7 +240,7 @@ bool MyTable::writeCell_(int rowN, int colN, String xdata){
    overwriteRow(rowN, row);
   
     // copy everything in temp file after rown to table after rown
-    for (int i=0; i < Nrows; i++){
+    for (int i=0; i < numRows; i++){
       if (i>rowN) appendRow(tempfile.selectRow(i)); 
     }
 
@@ -246,12 +258,14 @@ bool MyTable::writeCellFast(int rowN, int colN, String xdata){
 bool MyTable::writeCellFast(int rowN, int colN, long xdata){
   return writeCellFast_(rowN, colN, String(xdata));
 }
+
 bool MyTable::writeCellFast_(int rowN, int colN, String xdata){
   int numCols = countCols();
+  int numRows = countRows();
+  if ((rowN >= numRows)|| (colN >= numCols)) return false;
   String row = selectRow(rowN);
  
  int start = 0;
- int j=0;
  bool end = false;
 
 //select start of column index
@@ -260,7 +274,7 @@ bool MyTable::writeCellFast_(int rowN, int colN, String xdata){
 //----------fix extreme conditions------
 //if the user wishes to select for example cell [0,0], set start before 0 index
   if (colN==0) {start= -1; }
-  else if (colN == (numCols-1)) {end = true;}
+  if (colN == (numCols-1)) {end = true;}
 
   //writing in row from start
   if (!end) row = updateString(++start, fd(xdata, CELL_LENGTH), row);
@@ -269,10 +283,11 @@ bool MyTable::writeCellFast_(int rowN, int colN, String xdata){
   //write new row to table
   int index = CELL_LENGTH*numCols*rowN;
   File table;
-  table = SD.open(tableName, FILE_WRITE);  
+  table = SD.open(tableName, FILE_WRITX);  
   table.seek(index);
   for(auto i: row) { table.write(i); }
   table.close();
+  // Serial.print("FILE_WRITX: "); Serial.println(FILE_WRITX);
   return true;
 }
 
@@ -282,11 +297,11 @@ bool MyTable::writeCellFast_(int rowN, int colN, String xdata){
 //----------------------overwriteRow-----verfied------------------------------------------------
 bool MyTable::overwriteRow(int rowN, String row){
   int numCols = countCols();
-  int Nrows = countRows();
-  if (rowN >= Nrows) return false;
+  int numRows = countRows();
+  if (rowN >= numRows) return false;
     int index = CELL_LENGTH*numCols*rowN;
     File table;
-    table = SD.open(tableName, FILE_WRITE);  
+    table = SD.open(tableName, FILE_WRITX);  
     table.seek(index);
     for(auto i: row) {
       table.write(i); 
@@ -328,7 +343,7 @@ int MyTable::countCols(){
 // ----------------------appendRow ---------------verified-----------------------------
 void MyTable::appendRow(String row){
     File table;
-    table = SD.open(tableName, FILE_APPEND);  
+    table = SD.open(tableName, FILE_APPENX);  
     // table.seek(table.size());
     for(auto i: row){ table.write(i);}
     table.close();
@@ -339,14 +354,18 @@ void MyTable::appendRow(String row){
   }
 
   void MyTable::appendEmptyRow(){
-    appendRow(generateEmptyRow(countCols()));
+    int numCols = countCols();
+    if (numCols < 1){
+      numCols = default_numCols;
+    }
+    appendRow(generateEmptyRow(numCols));
   }
 
 //------------------overwriteRow--------------------------verified-----------------------
   void MyTable::overwriteTable(String data){
       emptyTable();
       File table;
-      table = SD.open(tableName, FILE_WRITE); 
+      table = SD.open(tableName, FILE_WRITX); 
       table.print(data); 
       table.close();
   }
@@ -356,15 +375,21 @@ void MyTable::appendRow(String row){
     if (SD.exists(tableName)){
       SD.remove(tableName);
       File table;
-      table = SD.open(tableName, FILE_WRITE);
+      table = SD.open(tableName, FILE_CREATX);
       table.close();
     }
-    //create empty tempfile if it doesnt exist
+    //if table does not exists, create empty an empty table
     else {
-      File tempfile; 
-      tempfile = SD.open(TEMPFILENAME, FILE_WRITE); 
-      tempfile.close();
+      File table;
+      table = SD.open(tableName, FILE_CREATX);
+      table.close();
     }
+
+  }
+
+//----------------deleteTable------------------------------------------
+  void MyTable::deleteTable(){
+    if (SD.exists(tableName)) SD.remove(tableName);
   }
 
 //------------------------deleteRow----------------------------verified-----------------------
@@ -397,6 +422,7 @@ void MyTable::appendRow(String row){
 
 //--------------insertRow------------------------------------verified------------------
   bool MyTable::insertRow(unsigned int rowN, String row){
+    if (rowN < 0) return false;
     int Nrows = countRows();
 
      // append row instead if row number is above available rows
@@ -442,7 +468,7 @@ void MyTable::appendRow(String row){
 //  ------------------- helper functions definitions---------------------------
 
   //----------------get index of the nth appearance of character in string ---------------------
-//warning: positionx starts from 1
+//warning: positionx starts from 1 (It seemed necessary at the time)
 int nthCharIndex(char charx, uint8_t positionx, String stream){
   int counterx = 0;
   int posCount = 0;
@@ -457,7 +483,9 @@ int nthCharIndex(char charx, uint8_t positionx, String stream){
 
 // -----------------generateEmptyRow ---------------verified------------------
 String generateEmptyRow(int numCols){
-      String emptyCell = repeatString(" ", CELL_LENGTH-1); // empty cell data
+      if (numCols <= 0) return "";
+      String emptyCell = repeatString(STRING_PAD, CELL_LENGTH-1); // empty cell data
+      if (numCols == 1) return emptyCell + ENDL;
       String emptyRow = emptyCell + DIL; // empty cell
       emptyRow = repeatString(emptyRow, numCols-1); // empty row with last cell
       emptyRow += (emptyCell + ENDL); // complete empty row
@@ -469,7 +497,7 @@ String generateEmptyRow(int numCols){
 
 
   String repeatString(String string, uint8_t ntimes){
-
+    //ntimes must be >= 1
       String repeatedString = string;
       for (int i = 0; i < ntimes-1; ++i)
       {
@@ -609,30 +637,47 @@ String fitStringD(String ss, int _size){
   return cols;
  }
 
-
 //-----------use this function to debug your table from serial monitor (see example)-------------------
+
+
 void DEBUG_Table( MyTable table){
 
   /*commands
-    print // print table
-    delete // delete last row
-    del=1 // delete row 1
-    empty // empy table
-    read = 1,1 // read cell 1,1
-    write = 1,1+data // write data to cell 1,1
-    insert = 1 // insert empty row at row index 1
     append // append empty row to the end of table
+    cols // print the number of columns
+    del=2 // delete row with index 2
+    delete // delete last row
+    empty // empy table
+    insert=3 // insert empty row at row index 3
+    name // print the name of the table
+    print // print table
+    read=0,1 // read cell at position 0,1
+    row=0 // print row 0
+    rows // print the number of rows
+    write=2,3+data // write data to cell at postion 2,3
   */
 
   if(Serial.available()){
       String command = Serial.readString();
-      if (command == "print") table.printTable();
+
+      if (command == "print") {
+        Serial.println("---start of table---");
+        table.printTable(); 
+        Serial.println("---end of table----");}
       else if (command == "rows") Serial.println(table.countRows());
       else if (command == "cols") Serial.println(table.countCols());
-      else if (command == "empty") {table.emptyTable(); Serial.println("table emptied");}
+      else if (command == "empty") {
+        table.emptyTable();
+        Serial.println("table emptied");}
       else if (command == "name") Serial.println(table.getName());
-      else if (command == "append") {table.appendRow(generateEmptyRow(table.countCols())); Serial.println("empty row appended!");}
-      else if (command == "delete") {table.deleteRow(table.countRows() - 1); Serial.println("last row deleted");}
+      else if (command == "append") {
+          table.appendEmptyRow(); 
+          Serial.println("empty row appended!");}
+      else if (command == "delete") {
+        table.deleteRow(table.countRows() - 1); 
+        Serial.println("last row deleted");}
+      
+      //if it's non of the commands above then move on to advance commands
       else if (command.length() > 4){
 
         int eq_index = command.indexOf('=');
@@ -651,7 +696,7 @@ void DEBUG_Table( MyTable table){
         else if (command2 == "insert") {
           rowN = parseNumber(command.substring(eq_index+1));
           table.insertRow(rowN, generateEmptyRow(table.countCols()));
-          Serial.println("empty row inserted");
+          Serial.println(F("empty row inserted"));
         }
         else if (command2 == "row") {
           rowN = parseNumber(command.substring(eq_index+1));
@@ -661,9 +706,14 @@ void DEBUG_Table( MyTable table){
         else if (command2 == "write") {
           table.writeCell(rowN, colN, command.substring(plus_index+1));
           Serial.print(command.substring(plus_index+1));
-          Serial.println(" written to table");
+          Serial.println(F(" written to table"));
         }
-
+        else Serial.println(F("--not a command--"));
       }
+      else Serial.println(F("--not a command--"));
   }
 }
+
+
+
+
